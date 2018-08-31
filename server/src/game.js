@@ -89,8 +89,10 @@ export default class Game {
     // Listen to disconnections
     self.listenDisconnection(() => {
       // Notify the disconnection to the players and disconnect them
-      self.notifyClose(selfId);
-      opponent.notifyClose(selfId);
+      setTimeout(() => {
+        self.notifyClose(selfId);
+        opponent.notifyClose(selfId);
+      }, 1000);
     });
 
     // Starts the game

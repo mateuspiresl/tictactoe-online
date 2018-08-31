@@ -48,14 +48,12 @@ export default class Player {
   }
 
   /**
-   * Notifies the end.
+   * Notifies the ended.
    * @param {Array<Array<*>>} board The board.
    * @param {Number} winner The player who won.
    */
   notifyEnd(board, winner = null) {
-    this.socket.emit('end', {
-      board, winner,
-    });
+    this.socket.emit('end', { board, winner });
     this.socket.disconnect();
   }
 
