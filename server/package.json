@@ -1,0 +1,42 @@
+{
+  "name": "tictactoe",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=development babel-node src/index.js",
+    "build": "babel src -d dist",
+    "serve": "NODE_ENV=development node dist/index.js",
+    "test": "NODE_ENV=development mocha --recursive",
+    "posttest": "grep '\\.only' test/**.js || true",
+    "babel": "NODE_ENV=development babel-node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mateuspiresl/tictactoe.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mateuspiresl/tictactoe/issues"
+  },
+  "homepage": "https://github.com/mateuspiresl/tictactoe#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.2.6",
+    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
+    "babel-plugin-transform-builtin-extend": "^1.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "eslint": "^5.4.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "mocha": "^5.2.0",
+    "socket.io-client": "^2.1.1"
+  },
+  "dependencies": {
+    "socket.io": "^2.1.1"
+  }
+}
