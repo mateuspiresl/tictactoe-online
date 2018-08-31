@@ -10,7 +10,7 @@ import { log } from './utils';
  * @returns {Promise<Server>} The http server.
  */
 export default () => {
-  const httpServer = http.createServer((req, res) => res.end(req.url));
+  const httpServer = http.createServer((req, res) => res.end('Reached.'));
   const ioServer = io(httpServer);
 
   // Holds a player waiting for a match

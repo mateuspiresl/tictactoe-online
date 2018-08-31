@@ -116,7 +116,7 @@ describe('App', () => {
       playerB.emit('intro', { name: 'Player B' });
 
       playerA.on('start', () => done());
-      playerA.on('winner', () => done('There can\'t have a winner at this moment'));
+      playerA.on('end', () => done('There can\'t have a winner at this moment'));
     });
 
     afterEach(() => {
@@ -178,7 +178,7 @@ describe('App', () => {
     });
   });
 
-  describe('Winning', () => {
+  describe('Ending', () => {
     let playerA;
     let playerB;
 
@@ -207,17 +207,41 @@ describe('App', () => {
       ];
 
       playerA.on('update', () => movements.splice(0, 1)[0]());
-      playerA.on('winner', ({ board, id }) => {
+      playerA.on('end', ({ board, winner }) => {
         expect(board).to.have.deep.members([
           [0, null, 1],
           [0, null, 1],
           [0, null, null],
         ]);
-        expect(id).to.equal(0);
+        expect(winner).to.equal(0);
         done();
       });
 
       movements.splice(0, 1)[0]();
+    });
+
+    it('no winner', (done) => {
+      const movements = [
+        () => playerA.emit('movement', { line: 0, column: 0 }),
+        () => playerB.emit('movement', { line: 0, column: 1 }),
+        () => playerA.emit('movement', { line: 1, column: 0 }),
+        () => playerB.emit('movement', { line: 1, column: 1 }),
+        () => playerA.emit('movement', { line: 2, column: 1 }),
+        () => playerB.emit('movement', { line: 2, column: 0 }),
+        () => playerA.emit('movement', { line: 0, column: 2 }),
+        () => playerB.emit('movement', { line: 1, column: 2 }),
+        () => playerA.emit('movement', { line: 2, column: 2 }),
+      ];
+
+      const play = () => movements.splice(0, 1)[0]();
+
+      playerA.on('update', play);
+      playerA.on('end', ({ winner }) => {
+        expect(winner).to.equal(null);
+        done();
+      });
+
+      play();
     });
 
     it('the server disconnects when there is a winner', (done) => {

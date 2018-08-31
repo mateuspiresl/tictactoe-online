@@ -30,6 +30,7 @@ export default class Game {
       [null, null, null],
       [null, null, null],
     ];
+    this.movesCount = 0;
     this.winner = null;
   }
 
@@ -61,8 +62,12 @@ export default class Game {
             this.winner = selfId;
 
             // Notify the winner and disconnect the players
-            self.notifyWinner(this.board, selfId);
-            opponent.notifyWinner(this.board, selfId);
+            self.notifyEnd(this.board, selfId);
+            opponent.notifyEnd(this.board, selfId);
+          } else if (this.movesCount === 9) {
+            // The game ended without a winner
+            self.notifyEnd(this.board);
+            opponent.notifyEnd(this.board);
           } else {
             // Sends the current state to the players
             this._update();
@@ -116,6 +121,7 @@ export default class Game {
     }
 
     this.board[line][column] = selfId;
+    this.movesCount += 1;
     this.turn = opponentId;
   }
 
