@@ -126,7 +126,7 @@ describe('App', () => {
 
     it('first movement update to the first player', (done) => {
       playerA.emit('movement', { line: 0, column: 0 });
-      playerA.on('update', ({ board, turn }) => {
+      playerA.on('state', ({ board, turn }) => {
         try {
           expect(board).to.have.deep.members([
             [0, null, null],
@@ -143,7 +143,7 @@ describe('App', () => {
 
     it('first movement update to the second player', (done) => {
       playerA.emit('movement', { line: 0, column: 0 });
-      playerB.on('update', ({ board, turn }) => {
+      playerB.on('state', ({ board, turn }) => {
         try {
           expect(board).to.have.deep.members([
             [0, null, null],
@@ -161,7 +161,7 @@ describe('App', () => {
     it('second movement update', (done) => {
       playerA.emit('movement', { line: 0, column: 0 });
       playerB.emit('movement', { line: 1, column: 1 });
-      playerA.on('update', ({ board, turn }) => {
+      playerA.on('state', ({ board, turn }) => {
         if (turn === 0) {
           try {
             expect(board).to.have.deep.members([
@@ -206,7 +206,7 @@ describe('App', () => {
         () => playerA.emit('movement', { line: 2, column: 0 }),
       ];
 
-      playerA.on('update', () => movements.splice(0, 1)[0]());
+      playerA.on('state', () => movements.splice(0, 1)[0]());
       playerA.on('end', ({ board, winner }) => {
         expect(board).to.have.deep.members([
           [0, null, 1],
@@ -235,29 +235,13 @@ describe('App', () => {
 
       const play = () => movements.splice(0, 1)[0]();
 
-      playerA.on('update', play);
+      playerA.on('state', play);
       playerA.on('end', ({ winner }) => {
         expect(winner).to.equal(null);
         done();
       });
 
       play();
-    });
-
-    it('the server disconnects when there is a winner', (done) => {
-      const movements = [
-        () => playerA.emit('movement', { line: 0, column: 0 }),
-        () => playerB.emit('movement', { line: 0, column: 2 }),
-        () => playerA.emit('movement', { line: 1, column: 0 }),
-        () => playerB.emit('movement', { line: 1, column: 2 }),
-        () => playerA.emit('movement', { line: 2, column: 0 }),
-        () => playerA.emit('movement', { line: 2, column: 2 }),
-      ];
-
-      playerA.on('update', () => movements.splice(0, 1)[0]());
-      playerA.on('disconnect', () => done());
-
-      movements.splice(0, 1)[0]();
     });
   });
 

@@ -66,11 +66,17 @@ export default () => {
     });
   });
 
+  const port = process.env.PORT || 3000;
+
   // Starts the server
   return new Promise((resolve, reject) => {
-    httpServer.listen(process.env.PORT || 3000, (error) => {
-      if (error) reject(error);
-      else resolve(httpServer);
+    httpServer.listen(port, (error) => {
+      if (error) {
+        reject(error);
+      } else {
+        console.log('Listening on port', port);
+        resolve(httpServer);
+      }
     });
   });
 };

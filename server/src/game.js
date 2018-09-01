@@ -1,16 +1,16 @@
 import { log } from './utils';
 
 
-const WINNING_PATTERNS = new Set([
-  '111000000',
-  '000111000',
-  '000000111',
-  '100100100',
-  '010010010',
-  '001001001',
-  '100010001',
-  '001010100',
-]);
+const WINNING_PATTERNS = [
+  [[1, 1, 1], [0, 0, 0], [0, 0, 0]],
+  [[0, 0, 0], [1, 1, 1], [0, 0, 0]],
+  [[0, 0, 0], [0, 0, 0], [1, 1, 1]],
+  [[1, 0, 0], [1, 0, 0], [1, 0, 0]],
+  [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
+  [[0, 0, 1], [0, 0, 1], [0, 0, 1]],
+  [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  [[0, 0, 1], [0, 1, 0], [1, 0, 0]],
+];
 
 
 /**
@@ -32,6 +32,7 @@ export default class Game {
     ];
     this.movesCount = 0;
     this.winner = null;
+    this.ended = false;
   }
 
   /**
@@ -50,7 +51,7 @@ export default class Game {
     self.listen((movement) => {
       log(self.socket.id, self.name, 'Movement', movement);
 
-      if (this.winner === null) {
+      if (!this.ended) {
         try {
           this._move(selfId, opponentId, movement);
 
@@ -58,17 +59,21 @@ export default class Game {
           if (this._hasWinner(selfId)) {
             log(self.socket.id, self.name, 'Winner, board:', this.board);
 
-            // Holds the winner to avoid making moves from now
-            this.winner = selfId;
+            this.ended = true;
 
             // Notify the winner and disconnect the players
             self.notifyEnd(this.board, selfId);
             opponent.notifyEnd(this.board, selfId);
           } else if (this.movesCount === 9) {
+            log(self.socket.id, self.name, 'End, board:', this.board);
+
+            this.ended = true;
+
             // The game ended without a winner
             self.notifyEnd(this.board);
             opponent.notifyEnd(this.board);
           } else {
+            log(self.socket.id, self.name, 'Board:', this.board);
             // Sends the current state to the players
             this._update();
           }
@@ -88,11 +93,11 @@ export default class Game {
 
     // Listen to disconnections
     self.listenDisconnection(() => {
-      // Notify the disconnection to the players and disconnect them
-      setTimeout(() => {
+      // If the game didn't end, notify the disconnection to the players
+      if (!this.ended) {
         self.notifyClose(selfId);
         opponent.notifyClose(selfId);
-      }, 1000);
+      }
     });
 
     // Starts the game
@@ -128,12 +133,12 @@ export default class Game {
   }
 
   _hasWinner(selfId) {
-    const pattern = this.board.map(
-      line => line.map(
-        cell => (cell === selfId ? 1 : 0),
-      ).join(''),
-    ).join('');
-
-    return WINNING_PATTERNS.has(pattern);
+    return WINNING_PATTERNS.some(pattern => (
+      pattern.every((line, lineIndex) => (
+        line.every((cell, columnIndex) => (
+          !cell || this.board[lineIndex][columnIndex] === selfId
+        ))
+      ))
+    ));
   }
 }

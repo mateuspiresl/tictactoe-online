@@ -35,9 +35,7 @@ export default class Player {
    * @param {Number} turn The player in turn.
    */
   update(board, turn) {
-    this.socket.emit('update', {
-      board, turn,
-    });
+    this.socket.emit('state', { board, turn });
   }
 
   /**
@@ -54,7 +52,6 @@ export default class Player {
    */
   notifyEnd(board, winner = null) {
     this.socket.emit('end', { board, winner });
-    this.socket.disconnect();
   }
 
   /**
@@ -74,7 +71,6 @@ export default class Player {
   notifyClose(id) {
     try {
       this.socket.emit('close', { player: id });
-      this.socket.disconnect();
     } catch (error) {
       // Probably the player who had the error or disconnection
       // Do nothing
