@@ -2,6 +2,7 @@ import io from 'socket.io';
 import http from 'http';
 import Player from './player';
 import Game from './game';
+import createBot from './create-bot';
 import { log } from './utils';
 
 
@@ -12,9 +13,11 @@ import { log } from './utils';
 export default () => {
   const httpServer = http.createServer((req, res) => res.end('Reached.'));
   const ioServer = io(httpServer);
+  const port = process.env.PORT || 3000;
 
   // Holds a player waiting for a match
   let waiting = null;
+  let waitingTimeoutEvent = null;
 
   // If there is no other connection, put this player in waiting
   // But if there is (#waiting has a player), starts a game with both
@@ -28,6 +31,11 @@ export default () => {
 
         // Removes the waiting player to avoid using him with the next connection
         waiting = null;
+
+        // Removes the event used to create a bot
+        if (waitingTimeoutEvent) {
+          clearTimeout(waitingTimeoutEvent);
+        }
       } catch (error) {
         log(socket.id, name, 'Error:', error);
 
@@ -40,6 +48,12 @@ export default () => {
 
       // There is no player waiting, so put the current player
       waiting = new Player(socket, name);
+
+      // Register an event to create a bot if the player waits for more than 10 seconds
+      waitingTimeoutEvent = setTimeout(() => {
+        log(socket.id, name, 'Timeout, creating bot');
+        createBot(`http://localhost:${port}`, socket.id);
+      }, 10000);
 
       // If there's a disconnection, remove from waiting
       waiting.listenDisconnection((player) => {
@@ -60,13 +74,20 @@ export default () => {
     log(socket.id, null, 'New connection');
 
     socket.emit('connected', 'Send your name to \'intro\'.');
-    socket.once('intro', ({ name }) => {
+    socket.once('intro', ({ name, waitingPlayerId }) => {
       log(socket.id, name, 'Intro');
-      introducePlayer(socket, name);
+
+      if (waitingPlayerId) {
+        if (waiting && waiting.socket.id === waitingPlayerId) {
+          introducePlayer(socket, name);
+        } else {
+          socket.disconnect();
+        }
+      } else {
+        introducePlayer(socket, name);
+      }
     });
   });
-
-  const port = process.env.PORT || 3000;
 
   // Starts the server
   return new Promise((resolve, reject) => {
