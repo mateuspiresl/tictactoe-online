@@ -1,38 +1,50 @@
 package me.mateuspires.tictactoe.eventservice
 
+import android.util.Log
 import com.github.nkzawa.socketio.client.IO
 import com.github.nkzawa.socketio.client.Socket
 import com.google.gson.Gson
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import me.mateuspires.tictactoe.data.model.*
 import org.json.JSONObject
 
-class SocketIOEventService(
-        private val socket: Socket = IO.socket("http://192.168.0.14") // http://tictactoe.mateuspires.me
-) : EventService {
+class SocketIOEventService : EventService {
+
+    companion object {
+        private const val TAG = "TTT.SocketIO"
+        private const val HOST = "http://192.168.0.14:3000"
+    }
+
+    private val socket: Socket = IO.socket(HOST) // tictactoe.mateuspires.me
+    private var connected = false
 
     override fun connect() {
+        Log.d(TAG, "Connecting")
+        connected = true
         socket.connect()
     }
 
     override fun disconnect() {
-        socket.disconnect()
+        if (connected) {
+            Log.d(TAG, "Disconnecting")
+            connected = false
+            socket.disconnect()
+        }
     }
 
     override fun sendIntro(intro: IntroMessage) {
-        socket.emit("intro", JSONObject(Gson().toJson(intro)))
+        emit("intro", intro)
     }
 
     override fun sendMovement(movement: MovementMessage) {
-        socket.emit("movement", JSONObject(Gson().toJson(movement)))
+        emit("movement", movement)
     }
 
     override fun getWaitingObservable(): Observable<Boolean> {
-        return Observable.create { emitter ->
-            socket.on("waiting") { emitter.onNext(true) }
-        }
+        return createObservable("waiting", Boolean::class.java, true)
     }
 
     override fun getStartObservable(): Observable<StartMessage> {
@@ -43,8 +55,8 @@ class SocketIOEventService(
         return createObservable("state", StateMessage::class.java)
     }
 
-    override fun getWinnerObservable(): Observable<WinnerMessage> {
-        return createObservable("winner", WinnerMessage::class.java)
+    override fun getEndObservable(): Observable<EndMessage> {
+        return createObservable("end", EndMessage::class.java)
     }
 
     override fun getCloseObservable(): Observable<CloseMessage> {
@@ -52,21 +64,55 @@ class SocketIOEventService(
     }
 
     override fun getConnectionObservable(): Observable<Boolean> {
-        return Observable.create { emitter ->
-            socket.on(Socket.EVENT_CONNECT) { emitter.onNext(true) }
-            socket.on(Socket.EVENT_DISCONNECT) { emitter.onNext(false) }
+        return createObservable { emitter ->
+            socket.on(Socket.EVENT_CONNECT) {
+                Log.d(TAG, "Event connect")
+                connected = true
+                emitter.onNext(true)
+            }
+
+            socket.on(Socket.EVENT_DISCONNECT) {
+                Log.d(TAG, "Event disconnected")
+                connected = false
+                emitter.onNext(false)
+            }
+
+            socket.on(Socket.EVENT_ERROR) {
+                Log.d(TAG, "Event error")
+                connected = false
+                emitter.onNext(false)
+            }
         }
     }
 
-    private fun <T> createObservable(event: String, type: Class<T>): Observable<T> {
+    private fun emit(event: String, data: Any) {
+        val json = JSONObject(Gson().toJson(data))
+        Log.d(TAG, "Emitting to $event, $json")
+        socket.emit(event, json)
+    }
+
+    private fun <T> createObservable(action: (ObservableEmitter<T>) -> Unit): Observable<T> {
         val observable: Observable<T> = Observable.create { emitter ->
-            socket.on(event) { it ->
-                emitter.onNext(Gson().fromJson(it[0] as String, type))
-            }
+            action(emitter)
         }
 
         return observable
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun <T> createObservable(event: String, type: Class<T>, constValue: T? = null)
+            : Observable<T> {
+        return createObservable { emitter ->
+            socket.on(event) { it ->
+                if (constValue == null) {
+                    Log.d(TAG, "Event $event, ${it[0] as JSONObject}")
+                    emitter.onNext(Gson().fromJson((it[0] as JSONObject).toString(), type))
+                } else {
+                    Log.d(TAG, "Event $event")
+                    emitter.onNext(constValue)
+                }
+            }
+        }
     }
 }

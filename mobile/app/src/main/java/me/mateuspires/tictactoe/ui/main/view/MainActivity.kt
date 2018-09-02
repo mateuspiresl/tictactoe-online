@@ -1,81 +1,173 @@
 package me.mateuspires.tictactoe.ui.main.view
 
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.StaggeredGridLayoutManager
+import android.support.v7.widget.GridLayoutManager
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 import me.mateuspires.tictactoe.R
 import me.mateuspires.tictactoe.eventservice.SocketIOEventService
 import me.mateuspires.tictactoe.ui.main.MainContract
 import me.mateuspires.tictactoe.ui.main.presenter.BoardCell
 import me.mateuspires.tictactoe.ui.main.presenter.MainPresenter
+import me.mateuspires.tictactoe.util.loadAnimation
 
-class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListener, BoardAdapter.OnCellClickListener {
+class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListener,
+        BoardAdapter.OnCellClickListener {
+
+    private var presenter: MainContract.Presenter? = null
+    private var boardAdapter: BoardAdapter? = null
+    private var opponentName: String = ""
+    private var handler: Handler? = null
+    private var infoHash: Int? = null
 
     companion object {
-        private const val TAG: String = "MainActivity"
+        private const val TAG = "TTT.MainActivity"
+        private val COLOR_INFO: Int = Color.parseColor("#acd0ea")
+        private val COLOR_WARNING: Int = Color.parseColor("#ff9933")
+        private val COLOR_STATUS: Int = Color.parseColor("#B0B0B0")
     }
-
-    private val presenter: MainContract.Presenter = MainPresenter(this, SocketIOEventService())
-    private val boardAdapter: BoardAdapter = BoardAdapter(this, this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.bt_new_local_game).setOnClickListener(this)
-        findViewById<Button>(R.id.bt_new_online_game).setOnClickListener(this)
+        fab_menu_local.setOnClickListener(this)
+        fab_menu_online.setOnClickListener(this)
+        bt_disconnect.setOnClickListener(this)
 
-        val recyclerView = this.rv_board
-        recyclerView.adapter = boardAdapter
+        presenter = MainPresenter(this, SocketIOEventService())
+        boardAdapter = BoardAdapter(this, this)
+        handler = Handler()
 
-        val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
-        recyclerView.layoutManager = layoutManager
+        rv_board.adapter = boardAdapter
+        rv_board.layoutManager = GridLayoutManager(this, 3)
 
-        presenter.startNewGame(false)
+        presenter?.startNewGame(false)
+    }
+
+    override fun onDestroy() {
+        presenter?.destroy()
+        super.onDestroy()
     }
 
     override fun onClick(view: View?) {
-        when (view!!.id) {
-            R.id.bt_new_local_game -> presenter.startNewGame(false)
-            R.id.bt_new_online_game -> presenter.startNewGame(true)
+        when (view?.id) {
+            R.id.fab_menu_local -> presenter?.startNewGame(false)
+            R.id.fab_menu_online -> presenter?.startNewGame(true)
+            R.id.bt_disconnect -> presenter?.disconnect()
         }
+
+        fam_menu.collapse()
     }
 
     override fun onCellClick(position: Int) {
-        Log.d(TAG, "onCellClick $position")
-        presenter.move(position)
+        Log.d(TAG, "Move $position")
+        presenter?.move(position)
     }
 
     override fun showConnecting() {
-        Log.d(TAG, "showConnecting")
+        // Should be "Connecting to the server..."
+        showInfo("Waiting for an opponent...")
+
+        setMenuVisibility(false)
     }
 
     override fun showWaitingForOpponent() {
-        Log.d(TAG, "showWaitingForOpponent")
+        // Ignored because this message is shown on connecting state
+        // showInfo("Waiting for an opponent...")
     }
 
     override fun setOpponentName(name: String) {
-        Log.d(TAG, "setOpponentName: $name")
+        opponentName = name
     }
 
-    override fun clearBoard() {
-        Log.d(TAG, "clearBoard")
+    override fun startGame(selfTurn: Boolean) {
+        Log.d(TAG, "Start game $selfTurn")
+
+        boardAdapter?.clear()
+        showInfo(if (selfTurn) "Your turn." else "$opponentName's turn.")
     }
 
-    override fun updateState(selfTurn: Boolean, board: Array<BoardCell>) {
-        Log.d(TAG, "updateBoard: $selfTurn $board")
-        boardAdapter.update(board)
+    override fun updateBoard(board: Array<BoardCell>) {
+        Log.d(TAG, "Update board")
+        boardAdapter?.update(board)
+    }
+
+    override fun setTurn(selfTurn: Boolean) {
+        Log.d(TAG, "Set turn $selfTurn")
+        showInfo(if (selfTurn) "Your turn." else "$opponentName's turn.")
     }
 
     override fun showWinner(self: Boolean) {
-        Log.d(TAG, "showWinner: $self")
+        Log.d(TAG, "Winner $self")
+
+        if (self) {
+            showInfo("You won!", COLOR_INFO)
+        } else {
+            showInfo("$opponentName won!", COLOR_WARNING)
+        }
+
+        setMenuVisibility(true)
     }
 
-    override fun showDisconnectedWarning() {
-        Log.d(TAG, "showDisconnectedWarning")
+    override fun showTie() {
+        Log.d(TAG, "Tie")
+        showInfo("Tie!")
+        setMenuVisibility(true)
+    }
+
+    override fun notifyDisconnection(possibleFail: Boolean) {
+        if (possibleFail) {
+            showInfo("Game ended due to a disconnection.", COLOR_WARNING)
+        } else {
+            showInfo("Connection canceled.", COLOR_STATUS)
+        }
+
+        setMenuVisibility(true)
+    }
+
+    private fun showInfo(text: String, color: Int = Color.WHITE, fromCallback: Boolean = false) {
+        val hash = text.hashCode()
+
+        if (!fromCallback || infoHash == hash) {
+            infoHash = hash
+
+            if (ll_header.visibility == View.INVISIBLE) {
+                tv_info.text = text
+                ll_header.setBackgroundColor(color)
+                ll_header.visibility = View.VISIBLE
+                ll_header.loadAnimation(R.anim.slide_up_show)
+            } else {
+                ll_header.loadAnimation(R.anim.slide_up_hide) {
+                    if (infoHash == hash) {
+                        ll_header.visibility = View.INVISIBLE
+                        handler?.postDelayed({ showInfo(text, color, true) }, 60)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setMenuVisibility(visible: Boolean) {
+        if (visible && ll_menu_container.visibility == View.INVISIBLE) {
+            ll_menu_container.loadAnimation(R.anim.slide_right_show) {
+                ll_menu_container.visibility = View.VISIBLE
+            }
+
+            bt_disconnect.loadAnimation(R.anim.slide_left_hide) {
+                bt_disconnect.visibility = View.INVISIBLE
+            }
+        } else if (!visible && ll_menu_container.visibility == View.VISIBLE) {
+            ll_menu_container.loadAnimation(R.anim.slide_right_hide) {
+                ll_menu_container.visibility = View.INVISIBLE
+            }
+
+            bt_disconnect.visibility = View.VISIBLE
+            bt_disconnect.loadAnimation(R.anim.slide_left_show)
+        }
     }
 }

@@ -19,7 +19,7 @@ interface EventService {
 
     fun getStateObservable(): Observable<StateMessage>
 
-    fun getWinnerObservable(): Observable<WinnerMessage>
+    fun getEndObservable(): Observable<EndMessage>
 
     fun getCloseObservable(): Observable<CloseMessage>
 

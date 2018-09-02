@@ -3,7 +3,9 @@ package me.mateuspires.tictactoe.ui.main
 import me.mateuspires.tictactoe.ui.main.presenter.BoardCell
 
 interface MainContract {
+
     interface View {
+
         /**
          * Notifies the player is connecting to the server.
          */
@@ -20,16 +22,21 @@ interface MainContract {
         fun setOpponentName(name: String)
 
         /**
-         * Clears the board.
+         * Notifies the game started.
          */
-        fun clearBoard()
+        fun startGame(selfTurn: Boolean)
 
         /**
-         * Notifies if the player is in turn and the current state of the board.
-         * @param selfTurn If true, it's the player's turn.
+         * Notifies the current state of the board.
          * @param board The board array.
          */
-        fun updateState(selfTurn: Boolean, board: Array<BoardCell>)
+        fun updateBoard(board: Array<BoardCell>)
+
+        /**
+         * Notifies if the player is in turn.
+         * @param selfTurn If true, it's the player's turn.
+         */
+        fun setTurn(selfTurn: Boolean)
 
         /**
          * Notifies the winner of the game.
@@ -38,12 +45,19 @@ interface MainContract {
         fun showWinner(self: Boolean)
 
         /**
-         * Notifies the game ended caused by a disconnection from one of the players.
+         * Notifies the game ended with a tie.
          */
-        fun showDisconnectedWarning()
+        fun showTie()
+
+        /**
+         * Notifies the game ended caused by a disconnection from one of the players.
+         * @param possibleFail If true, the disconnection may be caused by a fail.
+         */
+        fun notifyDisconnection(possibleFail: Boolean)
     }
 
     interface Presenter {
+
         /**
          * Starts a new game.
          * @param online If true, a multiplayer game will be created, otherwise a local game will
@@ -56,5 +70,15 @@ interface MainContract {
          * @param position The position to move to.
          */
         fun move(position: Int)
+
+        /**
+         * Cancels the connection after a start new online game.
+         */
+        fun disconnect()
+
+        /**
+         * Destroys the presenter.
+         */
+        fun destroy()
     }
 }
