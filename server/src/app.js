@@ -52,7 +52,7 @@ export default () => {
       // Register an event to create a bot if the player waits for more than 10 seconds
       waitingTimeoutEvent = setTimeout(() => {
         log(socket.id, name, 'Timeout, creating bot');
-        createBot(`http://localhost:${port}`, socket.id);
+        createBot(`http://localhost:${port}`, 1200, socket.id);
       }, 10000);
 
       // If there's a disconnection, remove from waiting
@@ -73,7 +73,6 @@ export default () => {
   ioServer.on('connection', (socket) => {
     log(socket.id, null, 'New connection');
 
-    socket.emit('connected', 'Send your name to \'intro\'.');
     socket.once('intro', ({ name, waitingPlayerId }) => {
       log(socket.id, name, 'Intro');
 

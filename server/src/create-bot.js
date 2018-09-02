@@ -16,7 +16,7 @@ function createRandomName() {
 }
 
 
-export default function createBot(host, waitingPlayerId) {
+export default function createBot(host, delay = 0, waitingPlayerId) {
   const selfName = createRandomName();
   const log = (message, ...args) => logFull('Bot', selfName, message, ...args);
   let selfId = null;
@@ -30,7 +30,7 @@ export default function createBot(host, waitingPlayerId) {
       const column = getRandomMovement();
 
       if (line <= 2 && column <= 2 && board[line][column] === null) {
-        player.emit('movement', { line, column });
+        setTimeout(() => player.emit('movement', { line, column }), delay);
         break;
       }
     }
