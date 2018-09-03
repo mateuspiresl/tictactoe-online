@@ -15,10 +15,10 @@ class SocketIOEventService : EventService {
 
     companion object {
         private const val TAG = "TTT.SocketIO"
-        private const val HOST = "http://192.168.0.14:3000"
+        private const val HOST = "http://tictactoe.mateuspires.me"
     }
 
-    private val socket: Socket = IO.socket(HOST) // tictactoe.mateuspires.me
+    private val socket: Socket = IO.socket(HOST)
     private var connected = false
 
     override fun connect() {
