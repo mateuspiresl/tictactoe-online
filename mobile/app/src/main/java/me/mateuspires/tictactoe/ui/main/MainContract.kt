@@ -59,6 +59,12 @@ interface MainContract {
     interface Presenter {
 
         /**
+         * Sets the name of the player for online games.
+         * @param name The name.
+         */
+        fun setName(name: String)
+
+        /**
          * Starts a new game.
          * @param online If true, a multiplayer game will be created, otherwise a local game will
          *      be.

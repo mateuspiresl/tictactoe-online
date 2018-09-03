@@ -110,6 +110,10 @@ class MainPresenter(
         }
     }
 
+    override fun setName(name: String) {
+        self.name = name
+    }
+
     /**
      * Starts a new game.
      * @param online If true, it will start an online game, otherwise it will start a local game.

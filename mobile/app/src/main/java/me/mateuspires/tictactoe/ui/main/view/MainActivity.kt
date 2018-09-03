@@ -15,6 +15,7 @@ import me.mateuspires.tictactoe.ui.main.presenter.BoardCell
 import me.mateuspires.tictactoe.ui.main.presenter.MainPresenter
 import me.mateuspires.tictactoe.util.loadAnimation
 
+
 class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListener,
         BoardAdapter.OnCellClickListener {
 
@@ -26,9 +27,6 @@ class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListene
 
     companion object {
         private const val TAG = "TTT.MainActivity"
-        private val COLOR_INFO: Int = Color.parseColor("#acd0ea")
-        private val COLOR_WARNING: Int = Color.parseColor("#ff9933")
-        private val COLOR_STATUS: Int = Color.parseColor("#B0B0B0")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,9 +104,9 @@ class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListene
         Log.d(TAG, "Winner $self")
 
         if (self) {
-            showInfo("You won!", COLOR_INFO)
+            showInfo("You won!", getColor(R.color.info))
         } else {
-            showInfo("$opponentName won!", COLOR_WARNING)
+            showInfo("$opponentName won!", getColor(R.color.warning))
         }
 
         setMenuVisibility(true)
@@ -122,9 +120,9 @@ class MainActivity : AppCompatActivity(), MainContract.View, View.OnClickListene
 
     override fun notifyDisconnection(possibleFail: Boolean) {
         if (possibleFail) {
-            showInfo("Game ended due to a disconnection.", COLOR_WARNING)
+            showInfo("Game ended due to a disconnection.", getColor(R.color.warning))
         } else {
-            showInfo("Connection canceled.", COLOR_STATUS)
+            showInfo("Connection canceled.", getColor(R.color.status))
         }
 
         setMenuVisibility(true)
