@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<me.mateuspires.tictactoe.ui.main.view.BoardCellView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bc_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/iv_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
+</me.mateuspires.tictactoe.ui.main.view.BoardCellView>
