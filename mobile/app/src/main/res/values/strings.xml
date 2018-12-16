@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">TicTacToe</string>
+    <string name="main_restart">Restart</string>
+    <string name="main_customize">Customize</string>
+    <string name="customizer_x_not_attached">No image selected for X.</string>
+    <string name="customizer_x_attach">Touch to attach to X.</string>
+    <string name="customizer_y_not_attached">No image selected for Y.</string>
+    <string name="customizer_y_attach">Touch to attach to Y.</string>
+    <string name="customizer_x_image_preview">X image preview</string>
+    <string name="customizer_y_image_preview">Y image preview</string>
+    <string name="customizer_done">Done</string>
+    <string name="customizer_search">Search for images...</string>
 </resources>

@@ -1,90 +1,68 @@
 package me.mateuspires.tictactoe.ui.main
 
-import me.mateuspires.tictactoe.ui.main.presenter.BoardCell
+import me.mateuspires.tictactoe.data.models.PlayersImages
+import me.mateuspires.tictactoe.game.BoardCell
+import me.mateuspires.tictactoe.game.Status
 
 interface MainContract {
-
-    interface View {
-
-        /**
-         * Notifies the player is connecting to the server.
-         */
-        fun showConnecting()
-
-        /**
-         * Notifies the player is waiting for an opponent.
-         */
-        fun showWaitingForOpponent()
-
-        /**
-         * Set the opponent's name.
-         */
-        fun setOpponentName(name: String)
-
-        /**
-         * Notifies the game started.
-         */
-        fun startGame(selfTurn: Boolean)
-
-        /**
-         * Notifies the current state of the board.
-         * @param board The board array.
-         */
-        fun updateBoard(board: Array<BoardCell>)
-
-        /**
-         * Notifies if the player is in turn.
-         * @param selfTurn If true, it's the player's turn.
-         */
-        fun setTurn(selfTurn: Boolean)
-
-        /**
-         * Notifies the winner of the game.
-         * @param self If true, the player won the game, otherwise the opponent did.
-         */
-        fun showWinner(self: Boolean)
-
-        /**
-         * Notifies the game ended with a tie.
-         */
-        fun showTie()
-
-        /**
-         * Notifies the game ended caused by a disconnection from one of the players.
-         * @param possibleFail If true, the disconnection may be caused by a fail.
-         */
-        fun notifyDisconnection(possibleFail: Boolean)
-    }
 
     interface Presenter {
 
         /**
-         * Sets the name of the player for online games.
-         * @param name The name.
+         * Returns the players images.
+         * @return The players images.
          */
-        fun setName(name: String)
+        fun getPlayersImages(): PlayersImages
 
         /**
          * Starts a new game.
-         * @param online If true, a multiplayer game will be created, otherwise a local game will
-         *      be.
          */
-        fun startNewGame(online: Boolean)
+        fun startNewGame()
 
         /**
          * Makes a move to the position of the board.
          * @param position The position to move to.
+         * @return True if the movement will be handled, otherwise false.
          */
-        fun move(position: Int)
+        fun move(position: Int): Boolean
 
         /**
-         * Cancels the connection after a start new online game.
+         * Returns the playing state.
+         * @return True if there is a game been played, otherwise false.
          */
-        fun disconnect()
+        fun isPlaying(): Boolean
+    }
+
+    interface View {
 
         /**
-         * Destroys the presenter.
+         * Notifies which player is in turn and the current state of the board.
+         * @param xTurn If true, it's the X player's turn.
+         * @param board The board state.
          */
-        fun destroy()
+        fun onUpdate(xTurn: Boolean, board: Array<BoardCell>)
+
+        /**
+         * Notifies the winner of the game and the current state of the board.
+         * @param xPlayer If true, the X player won the game, otherwise the O did.
+         * @param board The board state.
+         */
+        fun onWin(xPlayer: Boolean, board: Array<BoardCell>)
+
+        /**
+         * Notifies the game ended with a tie and the current state of the board.
+         * @param board The board state.
+         */
+        fun onTie(board: Array<BoardCell>)
+    }
+
+    interface BoardView {
+
+        /**
+         * Receives the status and the board state.
+         * @param status The new status.
+         * @board board The updated board.
+         */
+        fun update(status: Status, board: Array<BoardCell>)
     }
 }

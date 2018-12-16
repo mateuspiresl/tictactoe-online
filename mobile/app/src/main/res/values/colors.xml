@@ -10,6 +10,10 @@
     <color name="white">#fafafa</color>
     <color name="white_pressed">#f1f1f1</color>
     <color name="info">#00aad9</color>
-    <color name="warning">#ff9933</color>
+    <color name="warning">#d16500</color>
     <color name="status">#b0b0b0</color>
+    <color name="gray">#565656</color>
+    <color name="gray_light">#e6e6e6</color>
+    <color name="screen">#a0ffffff</color>
+    <color name="screen_text">#202020</color>
 </resources>
